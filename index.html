@@ -32,7 +32,7 @@
                 <h1 class="text-center">You</h1>
                 <div class="bar__static">
                     <div class="bg-danger" :style="{'width': playerBlood}">
-                        <span>100</span>
+                        <span>{{player.blood}}</span>
                     </div>
                 </div>
            </div>
@@ -41,7 +41,7 @@
                 <h1 class="text-center">Monster</h1>
                 <div class="bar__static">
                     <div class="bg-success" :style="{'width': monsterBlood}">
-                        <span>100</span>
+                        <span>{{monster.blood}}</span>
                     </div>
                 </div>
            </div>
