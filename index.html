@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Monster Slayer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.11/vue.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+</head>
+<body>
+
+    <style>
+        .bar__static {
+            background-color: #efefef;
+        }
+
+        .history__player {
+            background-color: #a1b1ff;
+            color: #6623ff;
+        }
+
+        .history__monster{
+            background-color: #ffa198;
+            color: #ff1220;
+        }
+    </style>
+
+
+    <div class="container" id="app">
+        <div class="row">
+            <div class="player col-sm">
+                <h1 class="text-center">You</h1>
+                <div class="bar__static">
+                    <div class="bg-danger" :style="{'width': playerBlood}">
+                        <span>100</span>
+                    </div>
+                </div>
+           </div>
+    
+           <div class="monster col-sm">
+                <h1 class="text-center">Monster</h1>
+                <div class="bar__static">
+                    <div class="bg-success" :style="{'width': monsterBlood}">
+                        <span>100</span>
+                    </div>
+                </div>
+           </div>
+        </div>
+      
+
+
+       <div class="control">
+          
+               <div class="mt-5 border border-secondary shadow p-3 mb-5 bg-white rounded text-center">
+                    <template v-if="!start"> 
+                        <button type="button" class="btn btn-success" @click="startGame">START NEW GAME</button>
+                    </template>
+
+                    <template v-if="start">
+
+                        <button class="btn btn-danger" id="attack" @click="takeAction($event)">Attack</button>
+                        <button class="btn btn-success" id="heal" @click="takeAction($event)">Heal</button>
+                        <button class="btn btn-warning" id="s-attack" @click="takeAction($event)">Special Attack</button>
+                        <button class="btn btn-secondary" @click="quitGame">Give up</button>
+                    </template>
+               </div>     
+       </div>
+
+       <template v-if="win">
+            <div class="alert alert-primary" role="alert">
+                YOU WON !!
+            </div>
+       </template>
+      
+       <template v-if="lose">
+            <div class="alert alert-danger" role="alert">
+                Uh-Oh, you lose. 
+          </div>
+       </template>
+     
+       <div class="history mt-5 border border-secondary shadow p-3 mb-5 bg-white rounded ">
+           <!-- <div class="history__player">PLAYER HITS MONSTER FOR 16</div>
+           <div class="history__monster">MONSTER HITS PLAYER FOR 5</div> -->
+
+           <div v-for="(action, index) in actions.slice().reverse()" :key="index" :class="[action.role === 'player' ? myClass[0] : myClass[1]]">
+                {{action.actionText}}
+           </div>
+       </div>
+    </div>
+
+
+    <script >
+
+
+        vm = new Vue({
+            el:'#app',
+            data: {
+                start: false,
+                actions: [],
+                player: {
+                    blood: 100
+                },
+                monster: {
+                    blood: 100
+                },
+                win: false,
+                lose: false,
+                myClass: ['history__player','history__monster']
+               
+            },
+            computed: {
+                playerBlood(){
+
+                    return this.player.blood + '%';
+                },
+                monsterBlood(){
+                    return this.monster.blood + '%'; 
+                }
+            },
+            methods: {
+                takeAction(event){
+                    let num1, num2; 
+                    let action = event.target.id;
+                    let playerText; 
+                    let monsterText;
+                    switch (action) {
+                        case 'attack':
+                            num1 = randomNum(25);
+                            num2 = randomNum(25);
+                            playerText = `PLAYER ATTACKS MONSTER FOR ${num1}`;
+                            monsterText = `MONSTER ATTACKS PLAYER FOR ${num2}`;
+                            break;
+                    
+                        case 'heal':
+                            num1 = -randomNum(20);//a negative number, will be deduct from total
+                            num2 = -randomNum(25);
+                            playerText = `PLAYER RESTORES HEALTH FOR ${-num1}`;
+                            monsterText = `MONSTER RESTORES HEALTH FOR ${-num2}`;
+                            break;
+
+                        case 's-attack':
+                            num1 = randomNum(35);
+                            num2 = randomNum(35);
+                            playerText = `PLAYER LAUNCHED A SPEACK ATTACK,  MONSTER LOSES ${num1} BLOOD`;
+                            monsterText = `MONSTER LAUNCHED A SPEACK ATTACK, PLAYER LOASE ${num2} BLOOD`;
+
+                            break;
+                    }
+
+
+                    this.player.blood -= num1;
+                    this.monster.blood -= num2;
+                    if (this.player.blood < 0){
+                        this.player.blood = 0;
+                        this.lose = true;
+                        this.start = false;
+                    } else if (this.player.blood > 100){
+                        this.player.blood = 100;
+                    }
+                    if (this.monster.blood < 0){
+                        this.monster.blood = 0;
+                        this.win = true;
+                        this.start = false;
+                    } else if (this.monster.blood > 100){
+                        this.monster.blood = 100;
+                    }
+
+                    this.actions.push({actionText: monsterText, role: 'monster'}, {actionText: playerText, role: 'player'});
+
+                    function randomNum(x){
+                        return Math.floor(Math.random()*x); 
+                    }
+        
+                    function actionText(who, action, whom, number){
+                        return  `${who} ${action} ${whom} FOR ${number}`.toUpperCase();
+                    }
+
+                   
+                },
+
+                reset(){
+                    this.actions = [];
+                    this.player = {blood: 100};
+                    this.monster = {blood: 100};
+                    this.win = false;
+                    this.lose = false;
+                },
+                startGame(){
+                    this.start = true;
+                    this.reset();
+                },
+                quitGame(){
+                    this.start = false;
+                    this.reset();
+                }
+            }
+        })
+
+
+
+      
+
+
+    </script>
+
+
+
+</body>
+</html>
